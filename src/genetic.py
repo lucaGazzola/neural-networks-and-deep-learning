@@ -5,6 +5,7 @@ import time
 
 POP_SIZE = 10
 GENERATIONS = 10
+CROSSOVERS = 2
 training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 mutation_probability = 0.1
 
@@ -113,30 +114,46 @@ if __name__ == "__main__":
         start_time = time.time()
 
         print "Generation %s... Random sample: '%s'" % (generation, population[0])
-        weighted_population = []
 
-        for individual in population:
-            fitness_val = fitness(individual)
+        ind_to_cross = random.sample(range(0, POP_SIZE - 1), CROSSOVERS * 2)
 
-        pair = (individual, fitness_val)
-        weighted_population.append(pair)
+        if generation != 0:
+            population = new_population
+        new_population = []
 
-        population = []
+        for i in xrange(CROSSOVERS):
 
-        for _ in xrange(POP_SIZE / 2):
-            # Selection
-            ind1 = weighted_choice(weighted_population)
-            ind2 = weighted_choice(weighted_population)
+            print "individuals to cross %s and %s: %s , %s" % (i*2, i*2+1, ind_to_cross[i*2], ind_to_cross[i*2+1])
+
+            # Selection - random choice
+            ind2 = population[ind_to_cross[i*2]]
+            ind1 = population[ind_to_cross[i*2+1]]
 
             # Crossover
+            print "crossover on %s and %s (individual %s and %s)" % (ind1, ind2, ind_to_cross[i*2+1], ind_to_cross[i*2])
             ind1, ind2 = crossover(ind1, ind2)
 
             # Mutate and add back into the population.
-            population.append(mutate(ind1))
-            population.append(mutate(ind2))
+            new_population.append(mutate(ind1))
+            new_population.append(mutate(ind2))
+
+        for i in xrange(len(population)):
+
+            if i not in ind_to_cross:
+                print "mutating and adding individual %s : %s" % (i, population[i])
+                new_population.append(mutate(population[i]))
+
+        new_population_evaluated = []
+
+        for individual in new_population:
+            fitness_val = fitness(individual)
+            pair = (individual, fitness_val)
+            new_population_evaluated.append(pair)
 
         total_time = time.time() - start_time
         print "Generation Completed in %s" % total_time
+        for individual in new_population:
+            print individual
 
     # Display the highest-ranked string after all generations have been iterated
     # over. This will be the closest string to the OPTIMAL string, meaning it
