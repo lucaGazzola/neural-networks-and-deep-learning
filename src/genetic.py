@@ -4,7 +4,7 @@ import mnist_loader
 import time
 
 POP_SIZE = 10
-GENERATIONS = 50
+GENERATIONS = 10
 training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 mutation_probability = 0.1
 
@@ -14,7 +14,7 @@ def random_population():
     pop = []
     for i in xrange(POP_SIZE):
         mid_neurons_number = random.randint(10, 40)
-        epochs = random.randint(10, 30)
+        epochs = random.randint(5, 10)
         mini_batch_size = random.randint(10, 30)
         learning_rate = random.uniform(1.0, 4.0)
         pop.append([mid_neurons_number, epochs, mini_batch_size, learning_rate])
@@ -29,15 +29,26 @@ def fitness(individual):
     learning_rate = individual[3]
 
     # 784px images describing digits from 0 to 9 (10 possibilities)
-    network.Network([784, mid_neurons_number, 10])
+    net = network.Network([784, mid_neurons_number, 10])
 
     start_time = time.time()
-    correct_results, n_tests = individual[0].SGD(training_data, epochs, mini_batch_size, learning_rate, test_data=test_data)
+    correct_results, n_tests = net.SGD(training_data, epochs, mini_batch_size, learning_rate, test_data=test_data)
     total_time = time.time() - start_time
 
     fitness = n_tests - correct_results + total_time
 
     return fitness
+
+
+def weighted_choice(items):
+
+    weight_total = sum((item[1] for item in items))
+    n = random.uniform(0, weight_total)
+    for item, weight in items:
+        if n < weight:
+            return item
+        n = n - weight
+    return item
 
 
 def mutate(individual):
@@ -89,36 +100,28 @@ def crossover(individual1, individual2):
         offspring1[2] = individual2[2]
         offspring1[3] = individual2[3]
 
+    return offspring1, offspring2
+
+
 if __name__ == "__main__":
 
     population = random_population()
 
     # Simulate all of the generations.
     for generation in xrange(GENERATIONS):
+
+        start_time = time.time()
+
         print "Generation %s... Random sample: '%s'" % (generation, population[0])
         weighted_population = []
 
-        # Add individuals and their respective fitness levels to the weighted
-        # population list. This will be used to pull out individuals via certain
-        # probabilities during the selection phase. Then, reset the population list
-        # so we can repopulate it after selection.
         for individual in population:
             fitness_val = fitness(individual)
 
-            # Generate the (individual,fitness) pair, taking in account whether or
-            # not we will accidently divide by zero.
-            if fitness_val == 0:
-                pair = (individual, 1.0)
-            else:
-                pair = (individual, 1.0 / fitness_val)
-
-            weighted_population.append(pair)
+        weighted_population.append(individual, fitness_val)
 
         population = []
 
-        # Select two random individuals, based on their fitness probabilites, cross
-        # their genes over at a random point, mutate them, and add them back to the
-        # population for the next iteration.
         for _ in xrange(POP_SIZE / 2):
             # Selection
             ind1 = weighted_choice(weighted_population)
@@ -130,6 +133,9 @@ if __name__ == "__main__":
             # Mutate and add back into the population.
             population.append(mutate(ind1))
             population.append(mutate(ind2))
+
+        total_time = time.time() - start_time
+        print "Generation Completed in %s" % total_time
 
     # Display the highest-ranked string after all generations have been iterated
     # over. This will be the closest string to the OPTIMAL string, meaning it
@@ -143,5 +149,5 @@ if __name__ == "__main__":
             fittest_string = individual
             minimum_fitness = ind_fitness
 
-    print "Fittest String: %s" % fittest_string
+    print "Fittest: %s" % fittest_string
     exit(0)

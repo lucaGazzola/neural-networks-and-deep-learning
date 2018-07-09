@@ -64,10 +64,10 @@ class Network(object):
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
                 correct_results = self.evaluate(test_data)
-                print "Epoch {0}: {1} / {2}".format(
-                    j, correct_results, n_test)
-            else:
-                print "Epoch {0} complete".format(j)
+            #     print "Epoch {0}: {1} / {2}".format(
+            #         j, correct_results, n_test)
+            # else:
+            #     print "Epoch {0} complete".format(j)
         return correct_results, n_test
 
     def update_mini_batch(self, mini_batch, eta):
