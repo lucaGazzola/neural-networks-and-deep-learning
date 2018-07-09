@@ -118,7 +118,8 @@ if __name__ == "__main__":
         for individual in population:
             fitness_val = fitness(individual)
 
-        weighted_population.append(individual, fitness_val)
+        pair = (individual, fitness_val)
+        weighted_population.append(pair)
 
         population = []
 
