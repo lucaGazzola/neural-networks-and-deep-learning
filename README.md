@@ -16,3 +16,7 @@ you can also supply optional arguments to tune the parameters of the algorithm
 --mut_prob <mutation probability (floating point number)>
 ```
  a file named `report.txt` containing the results of the run will be generated in the `report` directory.
+
+## Requirements
+
+http://www.numpy.org/ (if pip is installed, simply type `pip install numpy`)
