@@ -94,16 +94,10 @@ def crossover(individual1, individual2):
     offspring1 = individual1
     offspring2 = individual2
 
-    if random.uniform(0, 1) < 0.5:
-        offspring1[0] = individual2[0]
-        offspring1[1] = individual2[1]
-        offspring2[2] = individual1[2]
-        offspring2[3] = individual1[3]
-    else:
-        offspring2[0] = individual1[0]
-        offspring2[1] = individual1[1]
-        offspring1[2] = individual2[2]
-        offspring1[3] = individual2[3]
+    offspring1[1] = individual2[1]
+    offspring1[3] = individual2[3]
+    offspring2[1] = individual1[1]
+    offspring2[3] = individual1[3]
 
     return offspring1, offspring2
 
