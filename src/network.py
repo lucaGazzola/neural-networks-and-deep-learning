@@ -140,11 +140,10 @@ class Network(object):
         self.weights = [np.random.randn(y, x) for x, y in zip(self.sizes[:-1], self.sizes[1:])]
 
 
-
-#### Miscellaneous functions
 def sigmoid(z):
     """The sigmoid function."""
     return 1.0/(1.0+np.exp(-z))
+
 
 def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
