@@ -2,6 +2,10 @@ import random
 import network
 import mnist_loader
 import time
+import sys
+import argparse
+
+# script usage: python genetic.py <population size> <generations number> <number of crossovers per generation> <mutaiton probability>
 
 POP_SIZE = 10
 GENERATIONS = 10
@@ -38,7 +42,7 @@ def fitness(individual):
 
     fitness = n_tests - correct_results + total_time
 
-    return fitness
+    return fitness, correct_results, total_time
 
 
 def weighted_choice(items):
@@ -104,7 +108,36 @@ def crossover(individual1, individual2):
     return offspring1, offspring2
 
 
+def elitism(population, elite):
+
+    sorted_population = sorted(population, key=lambda tup: tup[1])
+    if elite[1] < sorted_population[0][1]:
+        sorted_population[0] = elite
+    return sorted_population
+
+
 if __name__ == "__main__":
+
+    f = open('report.txt', 'w')
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--popsize", help="population size")
+    parser.add_argument("--gen", help="number of generations")
+    parser.add_argument("--cross", help="number of crossovers per generation")
+    parser.add_argument("--mut_prob", help="mutation probability")
+    args = parser.parse_args()
+
+    if args.popsize:
+        POP_SIZE = int(args.popsize)
+
+    if args.gen:
+        GENERATIONS = int(args.gen)
+
+    if args.cross:
+        CROSSOVERS = int(args.cross)
+
+    if args.mut_prob:
+        mutation_probability = float(args.mut_prob)
 
     population = random_population()
 
@@ -114,23 +147,36 @@ if __name__ == "__main__":
         start_time = time.time()
 
         print "Generation %s... Random sample: '%s'" % (generation, population[0])
-
-        ind_to_cross = random.sample(range(0, POP_SIZE - 1), CROSSOVERS * 2)
+        f.write("Generation %s... Random sample: '%s'\n" % (generation, population[0]))
 
         if generation != 0:
+
             population = new_population
+            sorted_evaluated_population = sorted(new_population_evaluated, key=lambda tup: tup[1])
+            elite = sorted_evaluated_population[0]
+
+        else:
+            
+            new_population_evaluated = []
+
+            for individual in population:
+                fitness_val = fitness(individual)
+                pair = (individual, fitness_val)
+                new_population_evaluated.append(pair)
+
+            sorted_evaluated_population = sorted(new_population_evaluated, key=lambda tup: tup[1])
+            elite = sorted_evaluated_population[0]
+        
         new_population = []
 
         for i in xrange(CROSSOVERS):
 
-            print "individuals to cross %s and %s: %s , %s" % (i*2, i*2+1, ind_to_cross[i*2], ind_to_cross[i*2+1])
+            print "individuals to cross %s and %s: %s , %s" % (i*2, i*2+1, sorted_evaluated_population[i*2], sorted_evaluated_population[i*2+1])
+            f.write("individuals to cross %s and %s: %s , %s \n" % (i*2, i*2+1, sorted_evaluated_population[i*2], sorted_evaluated_population[i*2+1]))
 
-            # Selection - random choice
-            ind2 = population[ind_to_cross[i*2]]
-            ind1 = population[ind_to_cross[i*2+1]]
-
-            # Crossover
-            print "crossover on %s and %s (individual %s and %s)" % (ind1, ind2, ind_to_cross[i*2+1], ind_to_cross[i*2])
+            ind2 = sorted_evaluated_population[i*2][0]
+            ind1 = sorted_evaluated_population[i*2+1][0]
+            
             ind1, ind2 = crossover(ind1, ind2)
 
             # Mutate and add back into the population.
@@ -139,33 +185,37 @@ if __name__ == "__main__":
 
         for i in xrange(len(population)):
 
-            if i not in ind_to_cross:
+            if i not in xrange(CROSSOVERS*2):
                 print "mutating and adding individual %s : %s" % (i, population[i])
+                f.write("mutating and adding individual %s : %s \n" % (i, population[i]))
                 new_population.append(mutate(population[i]))
 
         new_population_evaluated = []
 
         for individual in new_population:
-            fitness_val = fitness(individual)
+            fitness_val, correct_results, training_time = fitness(individual)
+            f.write("fitness of individual %s : %s , correct_results: %s , network training time: %s\n" % (individual, fitness_val, correct_results, training_time))
             pair = (individual, fitness_val)
-            new_population_evaluated.append(pair)
+            new_population_evaluated.append(pair) 
+
+        new_population_evaluated = elitism(new_population_evaluated, elite)    
 
         total_time = time.time() - start_time
         print "Generation Completed in %s" % total_time
+        f.write("Generation Completed in %s \n" % total_time)
         for individual in new_population:
             print individual
 
-    # Display the highest-ranked string after all generations have been iterated
-    # over. This will be the closest string to the OPTIMAL string, meaning it
-    # will have the smallest fitness value. Finally, exit the program.
     fittest_string = population[0]
     minimum_fitness = fitness(population[0])
 
     for individual in population:
-        ind_fitness = fitness(individual)
+        ind_fitness, correct_results, training_time = fitness(individual)
         if ind_fitness <= minimum_fitness:
             fittest_string = individual
             minimum_fitness = ind_fitness
 
     print "Fittest: %s" % fittest_string
+    f.write("Fittest: %s \n" % fittest_string)
+    f.close()
     exit(0)
