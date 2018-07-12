@@ -2,72 +2,98 @@ import random
 import network
 import mnist_loader
 import time
-import sys
 import argparse
 
 # script usage: python genetic.py <population size> <generations number> <number of crossovers per generation> <mutaiton probability>
 
+'''
+genetic algorithm parameters and training/testing dataset loading
+'''
+
+# population size
 POP_SIZE = 10
+
+# total number of generations
 GENERATIONS = 10
+
+# number of crossovers per generation
 CROSSOVERS = 2
-training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
+
+# mutation probability
 mutation_probability = 0.1
+
+# load the dataset
+training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
+
+
+'''
+initialize a random population
+'''
 
 
 def random_population():
 
     pop = []
     for i in xrange(POP_SIZE):
+
+        # randomly initialize the network parameters
         mid_neurons_number = random.randint(10, 40)
         epochs = random.randint(5, 10)
         mini_batch_size = random.randint(10, 30)
         learning_rate = random.uniform(1.0, 4.0)
+
+        # add the individual to the population
         pop.append([mid_neurons_number, epochs, mini_batch_size, learning_rate])
     return pop
 
 
+'''
+calculate the fitness of an individual
+'''
+
+
 def fitness(individual):
 
+    # set up the network parameters
     mid_neurons_number = individual[0]
     epochs = individual[1]
     mini_batch_size = individual[2]
     learning_rate = individual[3]
 
-    # 784px images describing digits from 0 to 9 (10 possibilities)
+    # instantiate a network classifying 784px images describing digits from 0 to 9 (10 possibilities)
     net = network.Network([784, mid_neurons_number, 10])
 
     start_time = time.time()
+
+    # use statistical gradient descent algorithm to train the network with the dataset
     correct_results, n_tests = net.SGD(training_data, epochs, mini_batch_size, learning_rate, test_data=test_data)
+
     total_time = time.time() - start_time
 
+    # the individual fitness is calculated as the wrongly classified examples + the total training time
     fitness = n_tests - correct_results + total_time
 
     return fitness, correct_results, total_time
 
 
-def weighted_choice(items):
-
-    weight_total = sum((item[1] for item in items))
-    n = random.uniform(0, weight_total)
-    for item, weight in items:
-        if n < weight:
-            return item
-        n = n - weight
-    return item
+'''
+apply mutation to an individual in the population
+each individual is mutated with *mutation_probability* probability
+'''
 
 
 def mutate(individual):
 
     # number of neurons
-    if random.uniform(0,1) < mutation_probability:
-        if random.uniform(0,1) < 0.5:
+    if random.uniform(0, 1) < mutation_probability:
+        if random.uniform(0, 1) < 0.5:
             individual[0] += 1
         else:
             individual[0] -= 1
 
     # number of epochs
-    if random.uniform(0,1) < mutation_probability:
-        if random.uniform(0,1) < 0.5:
+    if random.uniform(0, 1) < mutation_probability:
+        if random.uniform(0, 1) < 0.5:
             individual[1] += 1
         else:
             individual[1] -= 1
@@ -89,6 +115,12 @@ def mutate(individual):
     return individual
 
 
+'''
+apply crossover to two individual to generate two new ones
+the crossover type is 3-point
+'''
+
+
 def crossover(individual1, individual2):
 
     offspring1 = individual1
@@ -102,18 +134,27 @@ def crossover(individual1, individual2):
     return offspring1, offspring2
 
 
+'''
+apply elitism to the population
+if the elite individual is better that the fittest one in the population,
+a randomly chosen individual in the population is substituted with the elite
+'''
+
+
 def elitism(population, elite):
 
     sorted_population = sorted(population, key=lambda tup: tup[1])
     if elite[1] < sorted_population[0][1]:
-        sorted_population[0] = elite
+        sorted_population[random.randint(0, len(population)-1)] = elite
     return sorted_population
 
 
 if __name__ == "__main__":
 
-    f = open('report.txt', 'w')
+    # open the report file
+    f = open('../reports/report_pop'+str(POP_SIZE)+'_gen'+str(GENERATIONS)+'.txt', 'w')
 
+    # in the user supplied optional arguments, parse them and assign the GA parameters accordingly
     parser = argparse.ArgumentParser()
     parser.add_argument("--popsize", help="population size")
     parser.add_argument("--gen", help="number of generations")
@@ -133,9 +174,10 @@ if __name__ == "__main__":
     if args.mut_prob:
         mutation_probability = float(args.mut_prob)
 
+    # initialize random population
     population = random_population()
 
-    # Simulate all of the generations.
+    # interate for the number of generations specified
     for generation in xrange(GENERATIONS):
 
         start_time = time.time()
@@ -143,12 +185,15 @@ if __name__ == "__main__":
         print "Generation %s... Random sample: '%s'" % (generation, population[0])
         f.write("Generation %s... Random sample: '%s'\n" % (generation, population[0]))
 
+        # sort the populations and store the elite individual
+        # if the generation is not the first the fitness is already calculated at the end of the iteration
         if generation != 0:
 
             population = new_population
             sorted_evaluated_population = sorted(new_population_evaluated, key=lambda tup: tup[1])
             elite = sorted_evaluated_population[0]
 
+        # if this is the first generation, calculate the fitness here
         else:
             
             new_population_evaluated = []
@@ -163,6 +208,7 @@ if __name__ == "__main__":
         
         new_population = []
 
+        # apply *CROSSOVERS* crossovers to the population, individuals with the highest fitness are selected for crossover
         for i in xrange(CROSSOVERS):
 
             print "individuals to cross %s and %s: %s , %s" % (i*2, i*2+1, sorted_evaluated_population[i*2], sorted_evaluated_population[i*2+1])
@@ -173,10 +219,11 @@ if __name__ == "__main__":
             
             ind1, ind2 = crossover(ind1, ind2)
 
-            # Mutate and add back into the population.
+            # mutate the offspring and add back into the population.
             new_population.append(mutate(ind1))
             new_population.append(mutate(ind2))
 
+        # mutate the remaining individuals that were not crossovered
         for i in xrange(len(population)):
 
             if i not in xrange(CROSSOVERS*2):
@@ -186,6 +233,7 @@ if __name__ == "__main__":
 
         new_population_evaluated = []
 
+        # calculate the fitness of the population
         for individual in new_population:
             fitness_val, correct_results, training_time = fitness(individual)
             f.write("fitness of individual %s : %s , correct_results: %s , network training time: %s\n" % (individual, fitness_val, correct_results, training_time))
