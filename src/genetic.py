@@ -151,8 +151,6 @@ def elitism(population, elite):
 
 if __name__ == "__main__":
 
-    # open the report file
-    f = open('../reports/report_pop'+str(POP_SIZE)+'_gen'+str(GENERATIONS)+'.txt', 'w')
 
     # in the user supplied optional arguments, parse them and assign the GA parameters accordingly
     parser = argparse.ArgumentParser()
@@ -173,6 +171,9 @@ if __name__ == "__main__":
 
     if args.mut_prob:
         mutation_probability = float(args.mut_prob)
+
+    # open the report file
+    f = open('../reports/report_pop' + str(POP_SIZE) + '_gen' + str(GENERATIONS) + '.txt', 'w')
 
     # initialize random population
     population = random_population()
