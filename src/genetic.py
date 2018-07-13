@@ -183,8 +183,8 @@ if __name__ == "__main__":
 
         start_time = time.time()
 
-        print "Generation %s... Random sample: '%s'" % (generation, population[0])
-        f.write("Generation %s... Random sample: '%s'\n" % (generation, population[0]))
+        print "Generation %s'" % (generation)
+        f.write("Generation %s\n" % (generation))
 
         # sort the populations and store the elite individual
         # if the generation is not the first the fitness is already calculated at the end of the iteration
