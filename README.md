@@ -20,4 +20,5 @@ you can also supply optional arguments to tune the parameters of the algorithm
 ## Requirements
 
 python
+
 http://www.numpy.org/ (if pip is installed, simply type `pip install numpy`)
