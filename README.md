@@ -19,6 +19,6 @@ you can also supply optional arguments to tune the parameters of the algorithm
 
 ## Requirements
 
-python
+python: https://www.python.org/
 
-http://www.numpy.org/ (if pip is installed, simply type `pip install numpy`)
+numpy: http://www.numpy.org/ (if pip is installed, simply type `pip install numpy`)
