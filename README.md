@@ -16,6 +16,8 @@ you can also supply optional arguments to tune the parameters of the algorithm
 --mut_prob <mutation probability (floating point number)>
 ```
  a file named `report.txt` containing the results of the run will be generated in the `report` directory.
+ 
+ More details about the implementation and the approach in general can be found in report.pdf
 
 ## Requirements
 
