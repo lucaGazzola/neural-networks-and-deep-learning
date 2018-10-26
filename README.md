@@ -28,5 +28,7 @@ you can also supply optional arguments to tune the parameters of the algorithm
 python: https://www.python.org/
 
 numpy: http://www.numpy.org/ (if pip is installed, simply type `pip install numpy`)
+
 tensorflow: https://www.tensorflow.org/ (if pip is installed, simply type `pip install tensorflow`)
+
 keras: https://keras.io/ (if pip is installed, simply type `pip install keras`)
