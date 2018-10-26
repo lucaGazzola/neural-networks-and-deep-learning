@@ -173,7 +173,7 @@ if __name__ == "__main__":
         mutation_probability = float(args.mut_prob)
 
     # open the report file
-    f = open('../reports/report_pop' + str(POP_SIZE) + '_gen' + str(GENERATIONS) + '.txt', 'w')
+    f = open('report_pop' + str(POP_SIZE) + '_gen' + str(GENERATIONS) + '.txt', 'w')
 
     # initialize random population
     population = random_population()
