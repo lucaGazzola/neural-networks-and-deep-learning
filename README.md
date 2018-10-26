@@ -5,7 +5,11 @@ https://github.com/mnielsen/neural-networks-and-deep-learning
 
 To run the genetic algorithm simply use
 
-`python genetic.py`
+`python genetic.py` for a single layer neural network
+
+or
+
+`python genetic_conv.py` for a convolutional neural network
 
 you can also supply optional arguments to tune the parameters of the algorithm
 
@@ -24,3 +28,5 @@ you can also supply optional arguments to tune the parameters of the algorithm
 python: https://www.python.org/
 
 numpy: http://www.numpy.org/ (if pip is installed, simply type `pip install numpy`)
+tensorflow: https://www.tensorflow.org/ (if pip is installed, simply type `pip install tensorflow`)
+keras: https://keras.io/ (if pip is installed, simply type `pip install keras`)
